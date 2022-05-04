@@ -1,14 +1,29 @@
-import { ArrowLeft, Camera } from "phosphor-react";
+import { ArrowLeft } from "phosphor-react";
+import { FormEvent, useState } from "react";
 import { FeedbackType, feedbackTypes } from "..";
 import { CloseButton } from "../../CloseButton";
-
+import { ScreenshotButton } from '../ScreenshotButton';
 interface FeedbackContentStepProps {
   feedbackType: FeedbackType;
   onFeedbackRestartRequested: ()=> void;
+  onFeedbackSent: ()=> void;
 }
 
-export function FeedbackContentStep({feedbackType, onFeedbackRestartRequested}: FeedbackContentStepProps){
+export function FeedbackContentStep({feedbackType, onFeedbackRestartRequested, onFeedbackSent}: FeedbackContentStepProps){
+  const [screenshot, setScreenshot] = useState<string | null>();
+  const [comment, setComment] = useState('');
+  
   const feedbackTypeInfo = feedbackTypes[feedbackType];
+
+  function handleSubmitFeedback(event: FormEvent){
+    event.preventDefault();
+
+    console.log({
+      screenshot,
+      comment,
+    })
+    onFeedbackSent();
+  }
   
   return(
     <>
@@ -35,8 +50,9 @@ export function FeedbackContentStep({feedbackType, onFeedbackRestartRequested}: 
       </header>
 
 
-      <form className="my-4 w-full">
-        <textarea 
+      <form onSubmit={handleSubmitFeedback} className="my-4 w-full">
+        <textarea
+          onChange={event => setComment(event.target.value)} 
           className="
             min-w-[304px] 
             w-full 
@@ -61,26 +77,14 @@ export function FeedbackContentStep({feedbackType, onFeedbackRestartRequested}: 
         />
 
         <footer className="flex gap-2 mt-2">
-          <button
-            type="button"
-            className="
-              p-2
-              bg-zinc-800
-              rounded-md
-              border-transparent
-              hover:bg-zinc-700
-              focus:outline-none
-              focus:ring-2
-              focus:ring-offset-2
-              focus:ring-offset-zinc-900
-              focus:ring-brand-500
-            "
-          >
-            <Camera className="w-6 h-6" />
-          </button>
+          <ScreenshotButton
+            screenshot={screenshot}
+            onScreenshotTook={setScreenshot}
+          />
 
           <button 
             type="submit"
+            disabled={comment.length === 0}
             className="
               p-2
               bg-brand-500
@@ -98,6 +102,8 @@ export function FeedbackContentStep({feedbackType, onFeedbackRestartRequested}: 
               focus:ring-offset-zinc-900
               focus:ring-brand-500
               transition-colors
+              disabled:opacity-50
+              disabled:hover:bg-brand-500
             "
           >
             Enviar feedback
