@@ -1,8 +1,10 @@
 import { ArrowLeft } from "phosphor-react";
 import { FormEvent, useState } from "react";
 import { FeedbackType, feedbackTypes } from "..";
+import { api } from "../../../lib/api";
 import { CloseButton } from "../../CloseButton";
 import { ScreenshotButton } from '../ScreenshotButton';
+import { Loading } from "../../Loading";
 interface FeedbackContentStepProps {
   feedbackType: FeedbackType;
   onFeedbackRestartRequested: ()=> void;
@@ -12,16 +14,21 @@ interface FeedbackContentStepProps {
 export function FeedbackContentStep({feedbackType, onFeedbackRestartRequested, onFeedbackSent}: FeedbackContentStepProps){
   const [screenshot, setScreenshot] = useState<string | null>();
   const [comment, setComment] = useState('');
+  const [isSendingFeedback, setIsSendingFeedback] = useState(false);
   
   const feedbackTypeInfo = feedbackTypes[feedbackType];
 
-  function handleSubmitFeedback(event: FormEvent){
+  async function handleSubmitFeedback(event: FormEvent){
     event.preventDefault();
 
-    console.log({
-      screenshot,
+    setIsSendingFeedback(true);
+    await api.post('/feedbacks', {
+      type: feedbackType,
       comment,
+      screenshot
     })
+
+    setIsSendingFeedback(false);
     onFeedbackSent();
   }
   
@@ -84,7 +91,7 @@ export function FeedbackContentStep({feedbackType, onFeedbackRestartRequested, o
 
           <button 
             type="submit"
-            disabled={comment.length === 0}
+            disabled={comment.length === 0 || isSendingFeedback }
             className="
               p-2
               bg-brand-500
@@ -106,7 +113,7 @@ export function FeedbackContentStep({feedbackType, onFeedbackRestartRequested, o
               disabled:hover:bg-brand-500
             "
           >
-            Enviar feedback
+            {isSendingFeedback ? <Loading /> : 'Enviar feedback'}
           </button>
         </footer>
       </form>
